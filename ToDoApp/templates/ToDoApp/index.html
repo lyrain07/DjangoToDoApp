@@ -1,0 +1,113 @@
+{% extends "ToDoApp/layout.html" %}
+{% load static %}
+
+{% block body %}
+<div class="app-wrapper">
+
+    <!-- Dashboard -->
+    <div class="dashboard">
+        <h2>DASHBOARD</h2>
+
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">Tasks:</span>
+                <span class="stat-value">{{ total_tasks }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Completed:</span>
+                <span class="stat-value">{{ completed_tasks }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Remaining:</span>
+                <span class="stat-value">{{ remaining_tasks }}</span>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar" data-progress="{{ progress }}"></div>
+        </div>
+    </div>
+
+    <!-- Todo App -->
+    <div class="todo-app">
+
+        {% if total_tasks > 0 and remaining_tasks == 0 %}
+        <div class="cheer-quote show">
+            <i class="fa-solid fa-trophy"></i>
+            <p>Amazing! You've completed all your tasks! 🎉</p>
+        </div>
+        {% endif %}
+
+        <h1>
+            TO DO LIST
+            <!-- <img src="{% static 'ToDoApp/images/todo.png' %}" alt="todo icon"> -->
+        </h1>
+
+        <form action="{% url 'todoapp:add_task' %}" method="POST">
+            {% csrf_token %}
+            <input type="text" name="task" placeholder="New task" required>
+            <button type="submit">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+        </form>
+
+        <div class="task-list">
+            <ul id="tasks">
+                {% for task in tasks %}
+                <li class="{% if task.completed %}completed{% endif %}">
+                    <div class="task-content">
+                        <input type="checkbox"
+                               class="task-checkbox"
+                               {% if task.completed %}checked{% endif %}
+                               data-url="{% url 'todoapp:toggle_task' task.id %}">
+                        <span class="task-text">{{ task.title }}</span>
+                    </div>
+
+                    <a href="{% url 'todoapp:delete_task' task.id %}"
+                       class="delete-task-btn"
+                       onclick="return confirm('Delete this task?')">
+                        <i class="fa-regular fa-trash-can"></i>
+                    </a>
+                </li>
+                {% empty %}
+                <li style="text-align:center; color:#666;">
+                    No tasks yet. Add one above!
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="action-buttons">
+            <a href="{% url 'todoapp:delete_completed' %}"
+               class="action-btn delete-all-btn"
+               onclick="return confirm('Delete all completed tasks?')">
+                <i class="fa-solid fa-trash"></i>
+                Delete Completed
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<!-- JavaScript (clean, safe, no warnings) -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* Progress bar */
+    document.querySelectorAll(".progress-bar").forEach(bar => {
+        const value = bar.dataset.progress || 0;
+        bar.style.width = value + "%";
+    });
+
+    /* Checkbox toggle */
+    document.querySelectorAll(".task-checkbox").forEach(cb => {
+        cb.addEventListener("change", function () {
+            window.location.href = this.dataset.url;
+        });
+    });
+
+});
+</script>
+
+{% endblock %}
